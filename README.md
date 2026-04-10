@@ -16,6 +16,7 @@ SportLife es una tienda virtual de productos deportivos desarrollada como MVP (M
 8. [TLS/SSL en una API REST](#8-tlsssl-en-una-api-rest)
 9. [CORS en una API REST](#9-cors-en-una-api-rest)
 10. [Diseño de Pantallas — Figma](#10-diseño-de-pantallas--figma)
+11. [Capturas del Proyecto](#11-capturas-del-proyecto)
 
 ---
 
@@ -1590,6 +1591,26 @@ El flujo de compra de SportLife fue diseñado visualmente en Figma, cubriendo la
 | Pago rechazado + reintento | F-11, F-12 |
 
 [Ver diseño en Figma](https://www.figma.com/make/7pzO9LSdI26CVJ8cmJCs0Y/SportLife-Mobile-App-UI-Flow?t=LiyS4jrCTcTCUwwu-1)
+
+---
+
+## 11. Capturas del Proyecto
+
+### Swagger UI — Documentación interactiva de la API
+
+Swagger UI se genera automáticamente desde las anotaciones de los controladores y permite probar todos los endpoints directamente desde el navegador en `http://localhost:8080/swagger-ui.html`.
+
+![Swagger UI](docs/images/Swagger.png)
+
+Para probar endpoints protegidos: primero hacer login en `POST /api/auth/login`, copiar el token recibido y pegarlo en el botón **Authorize** con el formato `Bearer <token>`.
+
+---
+
+### Diagrama de Componentes
+
+Vista general de la arquitectura del sistema: capas, componentes y sus relaciones.
+
+![Diagrama de Componentes](docs/images/Compo.drawio.png)
 
 **Opción 2 — Por endpoint con anotación**
 

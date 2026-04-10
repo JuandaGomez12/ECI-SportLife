@@ -4,7 +4,7 @@
 
 ```
 edu.dosw.parcial/
-├── main/           → Clase de arranque de la aplicación
+├── SportLifeApplication.java  → Clase de arranque (paquete raíz para entity scan automático)
 ├── config/         → Configuración de Spring (seguridad, Swagger, JPA, Mongo)
 ├── controller/     → Endpoints REST, DTOs y manejo de errores
 │   ├── handlers/   → Controladores y manejador global de excepciones
@@ -33,8 +33,8 @@ edu.dosw.parcial/
 | Clase | Qué hace |
 |---|---|
 | `SecurityConfig` | Define qué rutas son públicas y cuáles requieren token JWT o rol específico |
-| `JpaConfig` | Le indica a Spring qué repositorios usan PostgreSQL |
-| `MongoConfig` | Le indica a Spring qué repositorios usan MongoDB |
+| `JpaConfig` | Habilita el manejo de transacciones JPA |
+| `MongoConfig` | Placeholder de configuración MongoDB (los repositorios se registran desde el main) |
 | `OpenApiConfig` | Configura Swagger con metadatos de la API y soporte para JWT |
 
 ## core/models/ — Enums de dominio
@@ -130,3 +130,34 @@ Todas heredan de `BusinessException`, que lleva el código HTTP como parte del e
 |---|---|---|---|
 | `POST` | `/api/cart/items` | USER | F-07 Agregar al carrito |
 | `GET` | `/api/cart` | USER | F-08 Ver resumen |
+
+---
+
+## Módulo: Orders / Checkout (F-09, F-10, F-11, F-12)
+
+| Clase | Capa | Qué hace |
+|---|---|---|
+| `OrderEntity` | persistence | Tabla `orders` — snapshot inmutable del carrito al momento del checkout |
+| `OrderItemEntity` | persistence | Tabla `order_items` — congela `productName` y `unitPrice` en el momento de crear la orden |
+| `PaymentEntity` | persistence | Tabla `payments` — cada intento de pago queda registrado (puede haber varios por orden) |
+| `OrderRepository` | persistence | `findByIdAndStatus` para buscar órdenes por estado |
+| `PaymentRepository` | persistence | Guarda intentos de pago |
+| `OrderService` | core/services | Checkout, aprobación, rechazo y reintento con doble validación de stock |
+| `OrderController` | controller | Usa `@AuthenticationPrincipal` y expone los 4 endpoints de pago |
+
+**Decisiones de diseño:**
+- La orden es un **snapshot**: guarda `productName` y `unitPrice` en el momento del checkout para que no cambien aunque el producto se modifique después.
+- El stock se valida **dos veces**: al hacer checkout y al aprobar, por si cambia entre ambas operaciones.
+- Al rechazar el pago el stock **no se descuenta** y el carrito no se toca — el usuario puede reintentar.
+- Al aprobar el pago el carrito se **vacía automáticamente**.
+- `validateOrderOwner()` devuelve 404 (no 403) para no revelar que la orden existe pero pertenece a otro usuario.
+- Cada reintento crea un nuevo registro `PaymentEntity` — el historial de intentos queda trazable.
+
+**Endpoints:**
+
+| Método | Ruta | Acceso | Funcionalidad |
+|---|---|---|---|
+| `POST` | `/api/orders/checkout` | USER | F-09 Iniciar pago |
+| `PATCH` | `/api/orders/{id}/approve` | USER | F-10 Aprobar pago |
+| `PATCH` | `/api/orders/{id}/reject` | USER | F-11 Rechazar pago |
+| `POST` | `/api/orders/{id}/retry` | USER | F-12 Reintentar pago |
