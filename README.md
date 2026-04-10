@@ -1598,7 +1598,53 @@ El flujo de compra de SportLife fue diseñado visualmente en Figma, cubriendo la
 
 ### Swagger UI — Documentación interactiva de la API
 
-Swagger UI se genera automáticamente desde las anotaciones de los controladores y permite probar todos los endpoints directamente desde el navegador en `http://localhost:8080/swagger-ui.html`.
+Swagger UI se genera automáticamente desde las anotaciones de los controladores y permite probar todos los endpoints directamente desde el navegador.
+
+**Requisitos previos:**
+- PostgreSQL corriendo con la base de datos `sportlife` creada
+- MongoDB corriendo en `localhost:27017`
+
+**Cómo correr la aplicación:**
+
+```bash
+cd ECI-SportLife
+./mvnw clean spring-boot:run
+```
+
+**URL de Swagger:**
+
+```
+http://localhost:8080/swagger-ui.html
+```
+
+**Cómo autenticarse en Swagger para probar endpoints protegidos:**
+
+1. Expandir `POST /api/auth/login`
+2. Hacer clic en **Try it out**
+3. Enviar con un usuario registrado:
+   ```json
+   {
+     "email": "admin@sportlife.com",
+     "password": "password"
+   }
+   ```
+4. Copiar el valor del campo `token` de la respuesta
+5. Hacer clic en el botón **Authorize** (candado, arriba a la derecha)
+6. Escribir `Bearer <token>` y confirmar
+7. A partir de ahí todos los requests incluyen el JWT automáticamente
+
+> Para crear el usuario admin directamente en la base de datos:
+> ```sql
+> INSERT INTO users (id, name, email, password, role, active, created_at)
+> VALUES (
+>   gen_random_uuid(),
+>   'Admin',
+>   'admin@sportlife.com',
+>   '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.',
+>   'ADMIN', true, NOW()
+> );
+> ```
+> La contraseña en texto plano de ese hash es `password`.
 
 ![Swagger UI](docs/images/Swagger.png)
 
