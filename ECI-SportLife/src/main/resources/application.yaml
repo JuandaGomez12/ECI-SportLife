@@ -1,0 +1,60 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ECI-SportLife
+
+  # ── Persistencia Relacional (PostgreSQL + JPA) ─────────────────────────────
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/sportlife}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+
+  # ── Persistencia No Relacional (MongoDB) ───────────────────────────────────
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://localhost:27017/sportlife}
+      database: ${MONGO_DB:sportlife}
+      auto-index-creation: true
+
+# ── Documentación (Swagger / OpenAPI) ─────────────────────────────────────────
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+    display-request-duration: true
+  show-actuator: false
+
+# ── Logging ────────────────────────────────────────────────────────────────────
+logging:
+  level:
+    root: INFO
+    edu.dosw.parcial: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.springframework.security: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# ── JWT ────────────────────────────────────────────────────────────────────────
+jwt:
+  secret: ${JWT_SECRET:clave-secreta-de-desarrollo-debe-cambiarse-en-produccion}
+  expiration: ${JWT_EXPIRATION:3600}
