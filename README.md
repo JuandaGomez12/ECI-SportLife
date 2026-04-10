@@ -1648,8 +1648,6 @@ http://localhost:8080/swagger-ui.html
 
 ![Swagger UI](docs/images/Swagger.png)
 
-Para probar endpoints protegidos: primero hacer login en `POST /api/auth/login`, copiar el token recibido y pegarlo en el botón **Authorize** con el formato `Bearer <token>`.
-
 ---
 
 ### Diagrama de Componentes
@@ -1658,13 +1656,29 @@ Vista general de la arquitectura del sistema: capas, componentes y sus relacione
 
 ![Diagrama de Componentes](docs/images/Compo.drawio.png)
 
-**Opción 2 — Por endpoint con anotación**
+---
 
-```java
-@CrossOrigin(origins = "https://www.sportlife.com")
-@GetMapping("/api/products")
-public ResponseEntity<Page<ProductResponse>> listProducts(...) { ... }
-```
+### Modelo Relacional
+
+Diagrama entidad-relación de las tablas PostgreSQL del sistema.
+
+![Modelo Relacional](docs/images/Relational.drawio.png)
+
+---
+
+### Modelo No Relacional
+
+Colecciones MongoDB con sus documentos embebidos y referencias cruzadas a PostgreSQL.
+
+![Modelo No Relacional](docs/images/NoDB.drawio.png)
+
+---
+
+### Diagrama de Clases
+
+Clases principales del dominio y sus relaciones.
+
+![Diagrama de Clases](docs/images/Class.drawio.png)
 
 ---
 
