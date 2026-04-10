@@ -104,29 +104,3 @@ Todas heredan de `BusinessException`, que lleva el código HTTP como parte del e
 | `POST` | `/api/products` | ADMIN | F-13 Crear |
 | `PUT` | `/api/products/{id}` | ADMIN | F-13 Actualizar |
 | `DELETE` | `/api/products/{id}` | ADMIN | F-13 Eliminar (inactiva) |
-
----
-
-## Módulo: Cart (F-07, F-08)
-
-| Clase | Capa | Qué hace |
-|---|---|---|
-| `CartEntity` | persistence | Tabla `carts` — un carrito por usuario (`@OneToOne`) |
-| `CartItemEntity` | persistence | Tabla `cart_items` — línea con precio congelado al momento de agregar |
-| `CartRepository` | persistence | `findByUser` para recuperar el carrito del usuario autenticado |
-| `CartItemRepository` | persistence | `findByCartAndProduct` para detectar si el producto ya está en el carrito |
-| `CartService` | core/services | Agrega o acumula items; valida stock; calcula total y subtotales |
-| `CartController` | controller | Usa `@AuthenticationPrincipal` para obtener el usuario del token JWT |
-
-**Decisiones de diseño:**
-- Si el producto ya está en el carrito se **suma** la cantidad, no se duplica el ítem.
-- El `unitPrice` se congela al agregar — no cambia si el producto cambia de precio después.
-- `getSubtotal()` se calcula en tiempo de ejecución para evitar inconsistencias.
-- Si el usuario no tiene carrito, se crea automáticamente al agregar el primer ítem.
-
-**Endpoints:**
-
-| Método | Ruta | Acceso | Funcionalidad |
-|---|---|---|---|
-| `POST` | `/api/cart/items` | USER | F-07 Agregar al carrito |
-| `GET` | `/api/cart` | USER | F-08 Ver resumen |

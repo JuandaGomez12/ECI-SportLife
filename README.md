@@ -4,6 +4,21 @@ SportLife es una tienda virtual de productos deportivos desarrollada como MVP (M
 
 ---
 
+## Índice
+
+1. [Matriz de Trazabilidad de Funcionalidades](#1-matriz-de-trazabilidad-de-funcionalidades)
+2. [Verbos HTTP por Funcionalidad](#2-verbos-http-por-funcionalidad)
+3. [Idempotencia por Funcionalidad](#3-idempotencia-por-funcionalidad)
+4. [Entradas, Salidas, Ejemplos y Validaciones](#4-entradas-salidas-ejemplos-y-validaciones-por-funcionalidad)
+5. [Códigos HTTP: Happy Path y Flujo de Error](#5-códigos-http-happy-path-y-flujo-de-error)
+6. [Seguridad de la Aplicación](#6-seguridad-de-la-aplicación)
+7. [Roles y Permisos](#7-roles-y-permisos)
+8. [TLS/SSL en una API REST](#8-tlsssl-en-una-api-rest)
+9. [CORS en una API REST](#9-cors-en-una-api-rest)
+10. [Diseño de Pantallas — Figma](#10-diseño-de-pantallas--figma)
+
+---
+
 ## 1. Matriz de Trazabilidad de Funcionalidades
 
 ### ¿Qué es una matriz de trazabilidad?
@@ -1556,6 +1571,25 @@ public class CorsConfig {
     }
 }
 ```
+
+---
+
+## 10. Diseño de Pantallas — Figma
+
+El flujo de compra de SportLife fue diseñado visualmente en Figma, cubriendo las pantallas necesarias para que un usuario pueda navegar el catálogo, agregar productos al carrito e iniciar el proceso de pago, incluyendo los estados de pago aprobado, rechazado y reintento.
+
+**Pantallas incluidas en el flujo:**
+
+| Pantalla | Funcionalidad cubierta |
+|---|---|
+| Listado de productos | F-03, F-04, F-05 |
+| Detalle de producto | F-06 |
+| Carrito de compras | F-07, F-08 |
+| Checkout (formulario de pago) | F-09 |
+| Pago aprobado | F-10 |
+| Pago rechazado + reintento | F-11, F-12 |
+
+[Ver diseño en Figma](https://www.figma.com/make/7pzO9LSdI26CVJ8cmJCs0Y/SportLife-Mobile-App-UI-Flow?t=LiyS4jrCTcTCUwwu-1)
 
 **Opción 2 — Por endpoint con anotación**
 
