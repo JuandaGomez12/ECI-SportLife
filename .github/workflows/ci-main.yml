@@ -1,0 +1,122 @@
+name: CI/CD — Main
+
+# Se ejecuta cada vez que llega un push a main
+# Esto ocurre cuando se hace merge de develop a main
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-test-analysis:
+    name: Build, Test & Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Descarga el código del repositorio
+      - name: Checkout código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. Configura Java 21
+      - name: Configurar Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # 3. Compila el proyecto
+      - name: Build
+        working-directory: ECI-SportLife
+        run: ./mvnw clean compile -B
+
+      # 4. Ejecuta los tests y genera el reporte de cobertura con JaCoCo
+      - name: Test y cobertura
+        working-directory: ECI-SportLife
+        run: ./mvnw test verify -B
+
+      # 5. Publica el reporte de cobertura como artefacto descargable
+      - name: Subir reporte JaCoCo
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jacoco-report-main
+          path: ECI-SportLife/target/site/jacoco/
+
+      # 6. Análisis estático de código con SonarQube
+      - name: Análisis SonarQube
+        working-directory: ECI-SportLife
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          ./mvnw sonar:sonar -B \
+            -Dsonar.projectKey=eci-sportlife \
+            -Dsonar.projectName="ECI SportLife" \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.token=$SONAR_TOKEN \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+
+      # 7. Empaqueta el artefacto final (.jar) para despliegue
+      - name: Package
+        working-directory: ECI-SportLife
+        run: ./mvnw package -DskipTests -B
+
+      # 8. Guarda el .jar como artefacto de GitHub
+      - name: Subir artefacto .jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: sportlife-app
+          path: ECI-SportLife/target/*.jar
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: build-test-analysis  # Solo despliega si build+test+análisis pasaron
+
+    steps:
+      # 9. Descarga el .jar generado en el job anterior
+      - name: Descargar artefacto .jar
+        uses: actions/download-artifact@v4
+        with:
+          name: sportlife-app
+          path: ./artifact
+
+      # 10. Despliega en el servidor de producción vía SSH
+      # Requiere los secrets: DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY
+      - name: Deploy vía SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            mkdir -p /opt/sportlife
+            systemctl stop sportlife || true
+
+      - name: Copiar .jar al servidor
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: "./artifact/*.jar"
+          target: "/opt/sportlife/"
+          strip_components: 1
+
+      - name: Arrancar servicio
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /opt/sportlife
+            nohup java -jar *.jar \
+              --spring.profiles.active=prod \
+              --JWT_SECRET=${{ secrets.JWT_SECRET }} \
+              --JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }} \
+              > /var/log/sportlife.log 2>&1 &
+            echo "SportLife desplegado correctamente"

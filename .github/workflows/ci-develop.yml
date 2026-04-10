@@ -1,0 +1,60 @@
+name: CI — Develop
+
+# Se ejecuta cada vez que llega un push a develop
+# Esto ocurre cuando se hace merge de una rama feature/* a develop
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build-test-analysis:
+    name: Build, Test & Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Descarga el código del repositorio
+      - name: Checkout código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # SonarQube necesita todo el historial para calcular new code
+
+      # 2. Configura Java 21
+      - name: Configurar Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # 3. Compila el proyecto y verifica que no hay errores de compilación
+      - name: Build
+        working-directory: ECI-SportLife
+        run: ./mvnw clean compile -B
+
+      # 4. Ejecuta los tests y genera el reporte de cobertura con JaCoCo
+      - name: Test y cobertura
+        working-directory: ECI-SportLife
+        run: ./mvnw test verify -B
+
+      # 5. Publica el reporte de cobertura como artefacto descargable
+      - name: Subir reporte JaCoCo
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jacoco-report-develop
+          path: ECI-SportLife/target/site/jacoco/
+
+      # 6. Análisis estático de código con SonarQube
+      - name: Análisis SonarQube
+        working-directory: ECI-SportLife
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          ./mvnw sonar:sonar -B \
+            -Dsonar.projectKey=eci-sportlife \
+            -Dsonar.projectName="ECI SportLife" \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.token=$SONAR_TOKEN \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
